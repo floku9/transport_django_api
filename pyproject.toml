@@ -1,0 +1,17 @@
+[tool.poetry]
+name = "trasnport-api"
+version = "0.1.0"
+description = ""
+authors = ["Aleksandr_Rybin <aleksandr.rybin@glowbyteconsulting.com>"]
+readme = "README.md"
+packages = [{include = "trasnport_api"}]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+django = "^4.2.6"
+djangorestframework = "^3.14.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
