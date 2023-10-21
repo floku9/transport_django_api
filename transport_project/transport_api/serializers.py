@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
-from .models import Company, Warehouse, Truck, Order
+from .models import Company, Warehouse, Truck, Order, CustomUser
 
 
 class BaseCompanySerializer(serializers.ModelSerializer):
@@ -24,7 +24,7 @@ class TruckSerializer(serializers.ModelSerializer):
 class WarehouseSerializer(serializers.ModelSerializer):
     class Meta:
         model = Warehouse
-        fields = ('id', 'name', 'address')
+        fields = "__all__"
 
 
 class FullCompanySerializer(serializers.ModelSerializer):
@@ -47,7 +47,12 @@ class OrderDetailSerializer(serializers.ModelSerializer):
 
 
 class OrderCreateSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = Order
         fields = '__all__'
+
+
+class UserAddCompanySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CustomUser
+        fields = ('id', 'company',)

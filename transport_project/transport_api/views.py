@@ -1,23 +1,23 @@
 from rest_framework import generics, viewsets, status
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
+from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
 
-from .models import Order, Company
+from .models import Order, Company, Warehouse, CustomUser
+from .permissions import IsInSameCompany
 from .serializers import OrderDetailSerializer, FullCompanySerializer, \
-    StandardCompanySerializer, OrderCreateSerializer
+    StandardCompanySerializer, OrderCreateSerializer, WarehouseSerializer, UserAddCompanySerializer
 
 
-class OrderDetailView(generics.RetrieveAPIView):
-    serializer_class = OrderDetailSerializer
-    queryset = Order.objects.all()
 
-
-class OrderCreateView(generics.CreateAPIView):
+class OrderViewSet(viewsets.ModelViewSet):
     serializer_class = OrderCreateSerializer
     queryset = Order.objects.all()
+    permission_classes = (IsAuthenticated,)
+    http_method_names = ("get", "post")
 
-    def post(self, request, *args, **kwargs):
+    def create(self, request, *args, **kwargs):
         performer_company_id = request.data.get('performer_company')
         truck_id = request.data.get('truck')
 
@@ -25,16 +25,37 @@ class OrderCreateView(generics.CreateAPIView):
             raise ValidationError(
                 {'error': 'Performer company does not have the specified truck.'})
 
-        return self.create(request, *args, **kwargs)
+        return super().create(request, *args, **kwargs)
 
-class CompanyViewSet(viewsets.ModelViewSet):
+    def list(self, request, *args, **kwargs):
+        if self.request.user.is_superuser:
+            self.queryset = Order.objects.all()
+        else:
+            self.queryset = Order.objects.filter(company=self.request.user.company)
+
+        return super().list(request, *args, **kwargs)
+
+    def retrieve(self, request, *args, **kwargs):
+        self.serializer_class = OrderDetailSerializer
+        return super().retrieve(request, *args, **kwargs)
+
+
+class CompanyGetView(generics.RetrieveAPIView):
     queryset = Company.objects.all()
-    serializer_class = StandardCompanySerializer
-    http_method_names = ['get', 'head']
+    serializer_class = FullCompanySerializer
 
-    @action(detail=True, methods=['GET'])
-    def get_info(self, request, pk=None):
-        company = self.get_object()
-        serializer = FullCompanySerializer(company)
-        return Response(serializer.data)
 
+class WarehouseView(generics.ListCreateAPIView):
+    serializer_class = WarehouseSerializer
+    permission_classes = (IsAuthenticated, IsInSameCompany,)
+
+    def get_queryset(self):
+        if self.request.user.is_superuser:
+            return Warehouse.objects.all()
+        return Warehouse.objects.filter(company=self.request.user.company)
+
+
+class AddUserToCompanyView(generics.UpdateAPIView):
+    serializer_class = UserAddCompanySerializer
+    queryset = CustomUser.objects.all()
+    permission_classes = (IsAuthenticated, IsAdminUser,)

@@ -38,7 +38,9 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "transport_api",
-    "rest_framework"
+    "rest_framework",
+    "rest_framework.authtoken",
+    "djoser"
 ]
 
 MIDDLEWARE = [
@@ -69,8 +71,9 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = "transport_project.wsgi.application"
 
+WSGI_APPLICATION = "transport_project.wsgi.application"
+AUTH_USER_MODEL = 'transport_api.CustomUser'
 
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
@@ -123,3 +126,11 @@ STATIC_URL = "static/"
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework.authentication.TokenAuthentication',
+        'rest_framework.authentication.SessionAuthentication'
+    ),
+}
